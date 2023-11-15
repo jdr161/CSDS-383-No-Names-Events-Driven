@@ -1,8 +1,5 @@
 package org.nonames;
 
-import javax.json.Json;
-import javax.json.JsonArray;
-
 public class Main {
     public static void main(String[] args) {
         try {

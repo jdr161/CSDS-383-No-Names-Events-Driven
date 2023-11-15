@@ -4,7 +4,13 @@ import com.rabbitmq.client.*;
 
 import javax.json.*;
 import java.io.ByteArrayInputStream;
+import java.io.DataOutputStream;
+import java.io.IOException;
 import java.io.InputStream;
+import java.net.HttpURLConnection;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.UUID;
@@ -28,47 +34,73 @@ public class MessageConsumer {
     }
 
     private void onDelivery(String consumerTag, Delivery delivery){
-        JsonArray jsonArray = parseJsonArray(delivery.getBody());
-        for (JsonValue jsonValue : jsonArray) {
-            if(jsonValue.getValueType() != JsonValue.ValueType.OBJECT){
-                System.out.println("Expected JsonValue.ValueType.OBJECT, received " + jsonValue.getValueType());
-            }
-            JsonObject jsonObject = (JsonObject) jsonValue;
-
-            Event e = parseEventData(jsonObject);
-            createEvent(e);
-
-            ArrayList<Participant> participantsList = parseParticipantsData(jsonObject);
-            for(Participant p : participantsList) {
+        JsonObject jsonObject = parseJsonObject(delivery.getBody());
+        // if is a create-event message
+        if(jsonObject.isNull("participantID")){
+            createEvent(parseEventData(jsonObject));
+        } else { // if is a register-participant message
+            for (Participant p: parseParticipantData(jsonObject)) {
                 createParticipant(p);
-                registerParticipant(e.getId(), p.getParticipantId());
+                UUID eventId = UUID.fromString(jsonObject.getString("eventID"));
+                registerParticipant(eventId, p.getParticipantId());
             }
         }
-
     }
 
-    private JsonArray parseJsonArray(byte[] body){
+    private JsonObject parseJsonObject(byte[] body){
         InputStream messageBodyStream = new ByteArrayInputStream(body);
         try(JsonReader reader = Json.createReader(messageBodyStream)){
-            JsonArray jsonArray = reader.readArray();
-            return jsonArray;
+            JsonObject jsonObject = reader.readObject();
+            return jsonObject;
         } catch (Exception e) {
-            System.out.println("Could not parse JSON array: " + new String(body, StandardCharsets.UTF_8));
+            System.out.println("Could not parse JSON object: " + new String(body, StandardCharsets.UTF_8));
             System.exit(-1);
         }
         return null;
     }
 
-    private Event parseEventData(JsonObject jsonObject){
+    public static Event parseEventData(JsonObject jsonObject){
+        UUID uuid = UUID.fromString(jsonObject.getString("id"));
+        String date = jsonObject.getString("date");
+        String time = jsonObject.getString("time");
+        String title = jsonObject.getString("title");
+        String description = jsonObject.getString("description");
+        String hostEmail = jsonObject.getString("hostEmail");
+        return new Event(uuid,date,time,title,description,hostEmail);
+    }
+
+    private ArrayList<Participant> parseParticipantData(JsonObject jsonObject){
         return null;
     }
 
-    private ArrayList<Participant> parseParticipantsData(JsonObject jsonObject){
-        return null;
-    }
-
-    private void createEvent(Event event){
-
+    private void createEvent(Event event) {
+//        try {
+//            String apiEndpoint = "http://localhost:3001/api/create-event";
+//
+//            URL url = new URI(apiEndpoint).toURL();
+//            HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+//
+//            connection.setRequestMethod("POST");
+//            connection.setRequestProperty("Content-Type", "application/json");
+//            connection.setDoOutput(true);
+//            // Write the JSON data to the request body
+//            try (DataOutputStream wr = new DataOutputStream(connection.getOutputStream())) {
+//                wr.writeBytes(eventData);
+//            }
+//
+//            int responseCode = connection.getResponseCode();
+//
+//            if (responseCode == HttpURLConnection.HTTP_OK) {
+//                System.out.println("Successfully created an event.");
+//            } else {
+//                System.out.println("Failed to create an event");
+//            }
+//        } catch (IOException e) {
+//            e.printStackTrace();
+//        } catch (URISyntaxException e) {
+//
+//
+//        }
     }
 
     private void createParticipant(Participant participant){
