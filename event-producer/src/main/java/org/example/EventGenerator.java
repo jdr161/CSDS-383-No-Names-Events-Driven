@@ -45,7 +45,7 @@ public class EventGenerator {
                 string = faker.esports().team() + " vs. " + faker.esports().team();
                 break;
             case 3:
-                string = faker.beer() + " tasting event";
+                string = faker.beer().name() + " tasting event";
                 break;
             case 4:
                 string = faker.chuckNorris().fact();
