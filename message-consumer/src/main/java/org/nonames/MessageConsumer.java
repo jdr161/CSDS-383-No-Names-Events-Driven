@@ -50,7 +50,7 @@ public class MessageConsumer {
         return null;
     }
 
-    public static Event parseEventData(JsonObject jsonObject){
+    private Event parseEventData(JsonObject jsonObject){
         UUID uuid = UUID.fromString(jsonObject.getString("id"));
         String date = jsonObject.getString("date");
         String time = jsonObject.getString("time");
