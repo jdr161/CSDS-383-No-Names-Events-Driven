@@ -12,6 +12,6 @@ public class ParticipantGenerator {
         return faker.name().fullName();
     }
     public static String getEmail(){
-        return faker.name().firstName() + "." + faker.name().lastName() + "@" + faker.company().name() + ".com";
+        return faker.name().firstName() + "." + faker.name().lastName() + "@gmail.com";
     }
 }
