@@ -60,3 +60,5 @@ Make sure you have the relevant version of Node, Java Development Kit, and Rabbi
       - ```npm run start```
     - Command Line Interface: build the ```./cli``` project with Maven and run the ```Main.java``` file, or run the jar file via ```java -jar cli.jar```
 12. Navigate to ```http://localhost:3000``` or use the command line interface
+
+Note: Open the producer and consumer folder as root projects in IntelliJ to run the main files.
