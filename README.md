@@ -1,9 +1,9 @@
 # CSDS-383-No-Names-Events-Driven
 
 ## Versions
-Web UI: Node v18.12.0 (https://nodejs.org/en/blog/release/v18.12.0)\
-CLI: JDK version 17 (https://www.oracle.com/java/technologies/javase/jdk17-archive-downloads.html)\
-Event Broker: RabbitMQ version 3.12.8 (WINDOWS - https://www.rabbitmq.com/install-windows.html#chocolatey)\
+Web UI: Node v18.12.0 (https://nodejs.org/en/blog/release/v18.12.0) \
+CLI: JDK version 17 (https://www.oracle.com/java/technologies/javase/jdk17-archive-downloads.html) \
+Event Broker: RabbitMQ version 3.12.8 (WINDOWS - https://www.rabbitmq.com/install-windows.html#chocolatey) \
 Databases: PostgresSQL in the cloud via https://aws.amazon.com/rds/
 
 ## Explanation of Project
