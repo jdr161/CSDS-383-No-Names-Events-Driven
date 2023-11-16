@@ -65,7 +65,7 @@ public class MessageConsumer {
             }
             channel.basicAck(deliveryTag, false);
         } catch (Exception e) { // other processing errors -> send to DLQ
-            System.out.println("Exception occurred while processing message");
+            System.out.println("Exception occurred while processing message '" + message + "'");
             e.printStackTrace();
             channel.basicNack(deliveryTag, false, false);
         }
