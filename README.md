@@ -55,8 +55,8 @@ Make sure you have the relevant version of Node, Java Development Kit, and Rabbi
 5. Event Producer: build the ```./event-producer``` project with Maven and run the ```Main.java``` file or run the jar file via ```java -jar event-producer.jar```
 6. Message Consumer: build the ```./message-consumer``` project with Maven and run the ```Main.java``` file or run the jar file via ```java -jar message-consumer.jar```
 7. Choose how your UI:
-- Web User Interface: run the following commands in order at the root of the ```./cli``` directory:
-  - ```npm install```
-  - ```npm run start```
-- Command Line Interface: build the ```./cli``` project with Maven and run the ```Main.java``` file, or run the jar file via ```java -jar cli.jar```
+    - Web User Interface: run the following commands in order at the root of the ```./cli``` directory:
+      - ```npm install```
+      - ```npm run start```
+    - Command Line Interface: build the ```./cli``` project with Maven and run the ```Main.java``` file, or run the jar file via ```java -jar cli.jar```
 12. Navigate to ```http://localhost:3000``` or use the command line interface
