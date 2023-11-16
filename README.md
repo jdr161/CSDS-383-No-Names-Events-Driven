@@ -47,15 +47,16 @@ The goal of this project was to develop an application using a microservices arc
 ## How to run the project
 Make sure you have the relevant version of Node, Java Development Kit, and RabbitMQ installed (see [Versions Section](#versions))
 1. Run the "RabbitMQ Service - Start" app on your computer
-2. Event Producer: build the ```./event-producer``` project with Maven and run the ```Main.java``` file or run the jar file via ```java -jar event-producer.jar```
-3. Message Consumer: build the ```./message-consumer``` project with Maven and run the ```Main.java``` file or run the jar file via ```java -jar message-consumer.jar```
-4. Web User Interface: run the following commands in order at the root of the ```./cli``` directory:
+2. Events Microservice: build the ```./events-ms``` project with Maven and run the ```EventsMsApplication.java``` file or run the jar file via ```java -jar events-ms.jar```
+3. Participants Microservice: build the ```./participants-ms``` project with Maven and run the ```ParticipantsMsApplication.java``` file or run the jar file via ```java -jar participants-ms.jar```
+4. API Gateway: run the following commands in order at the root of the ```./API Gateway``` directory:
     - ```npm install```
     - ```npm run start```
-5. Command Line Interface: build the ```./cli``` project with Maven and run the ```Main.java``` file, or run the jar file via ```java -jar cli.jar```
-6. API Gateway: run the following commands in order at the root of the ```./API Gateway``` directory:
-    - ```npm install```
-    - ```npm run start```
-7. Events Microservice: build the ```./events-ms``` project with Maven and run the ```EventsMsApplication.java``` file or run the jar file via ```java -jar events-ms.jar```
-8. Participants Microservice: build the ```./participants-ms``` project with Maven and run the ```ParticipantsMsApplication.java``` file or run the jar file via ```java -jar participants-ms.jar```
-9. Navigate to ```http://localhost:3000``` or use the command line interface
+5. Event Producer: build the ```./event-producer``` project with Maven and run the ```Main.java``` file or run the jar file via ```java -jar event-producer.jar```
+6. Message Consumer: build the ```./message-consumer``` project with Maven and run the ```Main.java``` file or run the jar file via ```java -jar message-consumer.jar```
+7. Choose how your UI:
+- Web User Interface: run the following commands in order at the root of the ```./cli``` directory:
+  - ```npm install```
+  - ```npm run start```
+- Command Line Interface: build the ```./cli``` project with Maven and run the ```Main.java``` file, or run the jar file via ```java -jar cli.jar```
+12. Navigate to ```http://localhost:3000``` or use the command line interface
