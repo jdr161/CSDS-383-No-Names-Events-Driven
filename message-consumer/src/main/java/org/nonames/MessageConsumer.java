@@ -2,8 +2,13 @@ package org.nonames;
 
 import com.rabbitmq.client.*;
 
-import javax.json.*;
-import java.io.*;
+import javax.json.Json;
+import javax.json.JsonObject;
+import javax.json.JsonReader;
+import java.io.ByteArrayInputStream;
+import java.io.DataOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.net.*;
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
@@ -18,12 +23,24 @@ public class MessageConsumer {
     private final static String DLX_KEY = "hello_dlx_key";
     private final static String DLQ_NAME = "hello_dlq";
 
+    // Helper method to make HTTP connections
+    private static HttpURLConnection connectToApi(String endpoint, String requestMethod) throws IOException {
+        try {
+            URL url = new URI(endpoint).toURL();
+            HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+            connection.setRequestMethod(requestMethod);
+            return connection;
+        } catch (IOException | URISyntaxException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
     public void listen() throws Exception {
         ConnectionFactory factory = new ConnectionFactory();
         factory.setHost("localhost");
         Connection connection = factory.newConnection();
         Channel channel = connection.createChannel();
-
         // DLQ config
         channel.exchangeDeclare(DLX_NAME, "direct");
         Map<String, Object> args = new HashMap<>();
@@ -36,7 +53,8 @@ public class MessageConsumer {
         System.out.println(" [*] Waiting for messages. To exit press CTRL+C");
 
         DeliverCallback deliverCallback = (consumerTag, delivery) -> onDelivery(consumerTag, delivery, channel);
-        channel.basicConsume(QUEUE_NAME, false, deliverCallback, consumerTag -> { });
+        channel.basicConsume(QUEUE_NAME, false, deliverCallback, consumerTag -> {
+        });
     }
 
     private void onDelivery(String consumerTag, Delivery delivery, Channel channel) throws IOException {
@@ -59,6 +77,17 @@ public class MessageConsumer {
             System.out.println("Exception occurred while processing message");
             e.printStackTrace();
             channel.basicNack(deliveryTag, false, false);
+            // if is a create-event message
+            if (jsonObject.size() == 6) {
+                createEvent(parseEventData(jsonObject));
+            } else if (jsonObject.size() == 4) { // if is a register-participant message
+                Participant p = parseParticipantData(jsonObject);
+                createParticipant(p);
+                UUID eventId = UUID.fromString(jsonObject.getString("eventID"));
+                registerParticipant(eventId, p.getParticipantId());
+            } else {
+                System.out.println("Received improperly sized JSON.");
+            }
         }
     }
 
@@ -184,24 +213,10 @@ public class MessageConsumer {
             if (responseCode == HttpURLConnection.HTTP_OK) {
                 System.out.println("Successfully registered a participant.");
             } else {
-                throw new RuntimeException("Failed to register a participant with ID " +  participantID + " to event with ID " + eventID);
+                throw new RuntimeException("Failed to register a participant with ID " + participantID + " to event with ID " + eventID);
             }
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
     }
-
-    // Helper method to make HTTP connections
-    private static HttpURLConnection connectToApi(String endpoint, String requestMethod) throws IOException {
-        try {
-            URL url = new URI(endpoint).toURL();
-            HttpURLConnection connection = (HttpURLConnection) url.openConnection();
-            connection.setRequestMethod(requestMethod);
-            return connection;
-        } catch (IOException | URISyntaxException e) {
-            e.printStackTrace();
-        }
-        return null;
-    }
 }
-
