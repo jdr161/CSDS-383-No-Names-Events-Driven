@@ -27,17 +27,18 @@ public class MessageConsumer {
 
     private void onDelivery(String consumerTag, Delivery delivery){
         JsonObject jsonObject = parseJsonObject(delivery.getBody());
-        //System.out.println(jsonObject.getString("id" + jsonObject.isNull("participantID")));
         // if is a create-event message
-        if(jsonObject.getJsonObject("participantID") == null){
-            //System.out.println("Received create-event message");
+        if(jsonObject.size() == 6){
+//            System.out.println("Received create-event message");
             createEvent(parseEventData(jsonObject));
-        } else { // if is a register-participant message
-            //System.out.println("Received register-participant message");
+        } else if(jsonObject.size() == 4) { // if is a register-participant message
+//            System.out.println("Received register-participant message");
             Participant p = parseParticipantData(jsonObject);
             createParticipant(p);
             UUID eventId = UUID.fromString(jsonObject.getString("eventID"));
             registerParticipant(eventId, p.getParticipantId());
+        } else {
+            System.out.println("Received improperly sized JSON.");
         }
     }
 
