@@ -14,6 +14,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
+import java.util.zip.DataFormatException;
 
 
 public class MessageConsumer {
@@ -23,24 +24,12 @@ public class MessageConsumer {
     private final static String DLX_KEY = "hello_dlx_key";
     private final static String DLQ_NAME = "hello_dlq";
 
-    // Helper method to make HTTP connections
-    private static HttpURLConnection connectToApi(String endpoint, String requestMethod) throws IOException {
-        try {
-            URL url = new URI(endpoint).toURL();
-            HttpURLConnection connection = (HttpURLConnection) url.openConnection();
-            connection.setRequestMethod(requestMethod);
-            return connection;
-        } catch (IOException | URISyntaxException e) {
-            e.printStackTrace();
-        }
-        return null;
-    }
-
     public void listen() throws Exception {
         ConnectionFactory factory = new ConnectionFactory();
         factory.setHost("localhost");
         Connection connection = factory.newConnection();
         Channel channel = connection.createChannel();
+
         // DLQ config
         channel.exchangeDeclare(DLX_NAME, "direct");
         Map<String, Object> args = new HashMap<>();
@@ -53,8 +42,7 @@ public class MessageConsumer {
         System.out.println(" [*] Waiting for messages. To exit press CTRL+C");
 
         DeliverCallback deliverCallback = (consumerTag, delivery) -> onDelivery(consumerTag, delivery, channel);
-        channel.basicConsume(QUEUE_NAME, false, deliverCallback, consumerTag -> {
-        });
+        channel.basicConsume(QUEUE_NAME, false, deliverCallback, consumerTag -> { });
     }
 
     private void onDelivery(String consumerTag, Delivery delivery, Channel channel) throws IOException {
@@ -64,19 +52,6 @@ public class MessageConsumer {
         long deliveryTag = delivery.getEnvelope().getDeliveryTag();
 
         try {
-            if (jsonObject.isNull("participantID")) { // if is a create-event message
-                createEvent(parseEventData(jsonObject));
-            } else { // if is a register-participant message
-                Participant p = parseParticipantData(jsonObject);
-                createParticipant(p);
-                UUID eventId = UUID.fromString(jsonObject.getString("eventID"));
-                registerParticipant(eventId, p.getParticipantId());
-            }
-            channel.basicAck(deliveryTag, false);
-        } catch (Exception e) { // other processing errors -> send to DLQ
-            System.out.println("Exception occurred while processing message");
-            e.printStackTrace();
-            channel.basicNack(deliveryTag, false, false);
             // if is a create-event message
             if (jsonObject.size() == 6) {
                 createEvent(parseEventData(jsonObject));
@@ -86,8 +61,13 @@ public class MessageConsumer {
                 UUID eventId = UUID.fromString(jsonObject.getString("eventID"));
                 registerParticipant(eventId, p.getParticipantId());
             } else {
-                System.out.println("Received improperly sized JSON.");
+                throw new DataFormatException("Received improperly sized JSON.");
             }
+            channel.basicAck(deliveryTag, false);
+        } catch (Exception e) { // other processing errors -> send to DLQ
+            System.out.println("Exception occurred while processing message");
+            e.printStackTrace();
+            channel.basicNack(deliveryTag, false, false);
         }
     }
 
@@ -218,5 +198,18 @@ public class MessageConsumer {
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    // Helper method to make HTTP connections
+    private static HttpURLConnection connectToApi(String endpoint, String requestMethod) throws IOException {
+        try {
+            URL url = new URI(endpoint).toURL();
+            HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+            connection.setRequestMethod(requestMethod);
+            return connection;
+        } catch (IOException | URISyntaxException e) {
+            e.printStackTrace();
+        }
+        return null;
     }
 }
