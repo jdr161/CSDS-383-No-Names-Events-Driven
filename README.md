@@ -2,7 +2,7 @@
 
 ## Versions
 Web UI: Node v18.12.0\
-CLI: JDK version 19 (Amazon Corretto)\
+CLI: JDK version 17\
 Event Broker: RabbitMQ version 3.12.8\
 Databases: PostgresSQL in the cloud via https://aws.amazon.com/rds/
 
