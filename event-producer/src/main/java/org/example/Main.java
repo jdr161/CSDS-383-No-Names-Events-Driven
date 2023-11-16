@@ -10,7 +10,7 @@ import javax.json.Json;
 import javax.json.JsonObject;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
-import java.util.InputMismatchException;
+import java.util.*;
 import java.util.Random;
 import java.util.Scanner;
 import java.util.concurrent.TimeoutException;
@@ -50,9 +50,15 @@ public class Main {
         factory.setPassword(config.getString("PASSWORD"));
         conn = factory.newConnection();
         channel = conn.createChannel();
-        channel.queueDeclare(queueName, false, false, false, null);
-        channel.queuePurge("hello");
 
+        // DLQ config
+        channel.exchangeDeclare(config.getString("DLX_NAME"), "direct");
+        Map<String, Object> queueArgs = new HashMap<>();
+        queueArgs.put("x-dead-letter-exchange", config.getString("DLX_NAME"));
+        queueArgs.put("x-dead-letter-routing-key", config.getString("DLX_KEY"));
+
+        channel.queueDeclare(queueName, false, false, false, queueArgs);
+        channel.queuePurge("hello");
         String[] options = { "\n --- MainCLI Menu ---",
                 "[1] Create 50-100 Events (Each With 5-10 Participants)",
                 "[2] Exit Program"
@@ -122,6 +128,7 @@ public class Main {
                 .add("hostEmail", hostEmail)
                 .build();
         channel.basicPublish("", queueName, null, jsonObjToBytes(createEventJson));
+        System.out.println(" [x] Sent create event message: '" + createEventJson + "'");
 
         int participantsCount = 5 + random.nextInt(6);
         participantMessageCount+= participantsCount;
@@ -139,5 +146,6 @@ public class Main {
                 .build();
 
         channel.basicPublish("", queueName, null, jsonObjToBytes(addParticipantJson));
+        System.out.println(" [x] Sent register participant message: '" + addParticipantJson + "'");
     }
 }
