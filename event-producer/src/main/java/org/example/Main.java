@@ -17,9 +17,7 @@ import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 import java.time.temporal.TemporalUnit;
-import java.util.Properties;
-import java.util.Random;
-import java.util.Scanner;
+import java.util.*;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.TimeoutException;
 
@@ -44,8 +42,14 @@ public class Main {
         factory.setPassword(config.getString("PASSWORD"));
         conn = factory.newConnection();
         channel = conn.createChannel();
-        channel.queueDeclare(queueName, false, false, false, null);
 
+        // DLQ config
+        channel.exchangeDeclare(config.getString("DLX_NAME"), "direct");
+        Map<String, Object> queueArgs = new HashMap<>();
+        queueArgs.put("x-dead-letter-exchange", config.getString("DLX_NAME"));
+        queueArgs.put("x-dead-letter-routing-key", config.getString("DLX_KEY"));
+
+        channel.queueDeclare(queueName, false, false, false, queueArgs);
 
         Scanner scanner = new Scanner(System.in);
 
@@ -102,6 +106,7 @@ public class Main {
                 .build();
 
         channel.basicPublish("", queueName, null, jsonObjToBytes(createEventJson));
+        System.out.println(" [x] Sent create event message: '" + createEventJson + "'");
 
         int participantsCount = 5 + random.nextInt(6);
         for (int i = 0; i < participantsCount; i++){
@@ -119,5 +124,6 @@ public class Main {
                 .build();
 
         channel.basicPublish("", queueName, null, jsonObjToBytes(addParticipantJson));
+        System.out.println(" [x] Sent register participant message: '" + addParticipantJson + "'");
     }
 }
