@@ -10,6 +10,7 @@ import javax.json.Json;
 import javax.json.JsonObject;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.util.InputMismatchException;
 import java.util.Random;
 import java.util.Scanner;
 import java.util.concurrent.TimeoutException;
@@ -19,7 +20,22 @@ public class Main {
     static Channel channel;
 
     static String queueName;
+    private static final Scanner scanner = new Scanner(System.in);
 
+    private static void printMenuOptions(String[] options) {
+        for (String option : options) {
+            System.out.println(option);
+        }
+        System.out.println("---------------------------");
+        System.out.print("Select an option: ");
+    }
+    private static void clearConsole() {
+        try {
+            System.out.print("\033[H\033[2J");
+            System.out.flush();
+        } catch (Exception ignored) {
+        }
+    }
     public static void main(String[] args) throws IOException, TimeoutException, ConfigurationException {
         PropertiesConfiguration config = new PropertiesConfiguration();
         config.load("application.properties");
@@ -34,22 +50,46 @@ public class Main {
         conn = factory.newConnection();
         channel = conn.createChannel();
         channel.queueDeclare(queueName, false, false, false, null);
+        channel.queuePurge("hello");
 
-        System.out.println("Press enter to create 50-100 events, where each event has 5 to 10 event participants.");
-        Scanner scanner = new Scanner(System.in);
+        String[] options = { "\n --- MainCLI Menu ---",
+                "[1] Create 50-100 Events (Each With 5-10 Participants)",
+                "[2] Exit Program"
+        };
 
-        while (scanner.hasNextLine()){
-            String line = scanner.nextLine();
-            int eventsCount = 50 + random.nextInt(51);
-            for (int i = 0; i < eventsCount; i++){
-                sendRandomEventAndParticipants();
+        int input = 0;
+        while(input != 2){
+            printMenuOptions(options);
+            try {
+                input = Integer.parseInt(scanner.nextLine());
+            } catch (Exception e) {
+                throw new RuntimeException("Incorrect input given");
             }
-            System.out.println("Sent " + eventsCount + " create events messages.");
-        }
+            clearConsole();
 
-        scanner.close();
-        channel.close();
-        conn.close();
+            switch (input) {
+                // Create new events and participants
+                case 1 -> {
+                    int eventsCount = 5;//50 + random.nextInt(51);
+                    for (int i = 0; i < eventsCount; i++){
+                        sendRandomEventAndParticipants();
+                    }
+                    System.out.println("Sent " + eventsCount + " create events messages.");
+                }
+                // Exit program
+                case 2 -> {
+                    scanner.close();
+                    channel.close();
+                    conn.close();
+                    System.exit(1);
+                }
+
+                // Invalid integer input
+                default -> {
+                    throw new InputMismatchException("Incorrect input given");
+                }
+            }
+        }
     }
 
     private static byte[] jsonObjToBytes(JsonObject jsonObj){
@@ -74,7 +114,6 @@ public class Main {
                 .add("description", description)
                 .add("hostEmail", hostEmail)
                 .build();
-
         channel.basicPublish("", queueName, null, jsonObjToBytes(createEventJson));
 
         int participantsCount = 5 + random.nextInt(6);
