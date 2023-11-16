@@ -29,10 +29,8 @@ public class MessageConsumer {
         JsonObject jsonObject = parseJsonObject(delivery.getBody());
         // if is a create-event message
         if(jsonObject.size() == 6){
-//            System.out.println("Received create-event message");
             createEvent(parseEventData(jsonObject));
         } else if(jsonObject.size() == 4) { // if is a register-participant message
-//            System.out.println("Received register-participant message");
             Participant p = parseParticipantData(jsonObject);
             createParticipant(p);
             UUID eventId = UUID.fromString(jsonObject.getString("eventID"));

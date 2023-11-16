@@ -21,6 +21,7 @@ public class Main {
 
     static String queueName;
     private static final Scanner scanner = new Scanner(System.in);
+    private static int participantMessageCount = 0;
 
     private static void printMenuOptions(String[] options) {
         for (String option : options) {
@@ -63,18 +64,24 @@ public class Main {
             try {
                 input = Integer.parseInt(scanner.nextLine());
             } catch (Exception e) {
-                throw new RuntimeException("Incorrect input given");
+                input = 0;
             }
             clearConsole();
 
             switch (input) {
                 // Create new events and participants
                 case 1 -> {
-                    int eventsCount = 5;//50 + random.nextInt(51);
+                    int eventsCount = 50 + random.nextInt(51);
                     for (int i = 0; i < eventsCount; i++){
-                        sendRandomEventAndParticipants();
+                        try{
+                            sendRandomEventAndParticipants();
+                        } catch (Exception e){
+                            e.printStackTrace();
+                        }
                     }
                     System.out.println("Sent " + eventsCount + " create events messages.");
+                    System.out.println("Sent " + participantMessageCount + " create participant messages.");
+                    participantMessageCount = 0;
                 }
                 // Exit program
                 case 2 -> {
@@ -86,7 +93,7 @@ public class Main {
 
                 // Invalid integer input
                 default -> {
-                    throw new InputMismatchException("Incorrect input given");
+                    System.out.println("Incorrect input given");
                 }
             }
         }
@@ -117,6 +124,7 @@ public class Main {
         channel.basicPublish("", queueName, null, jsonObjToBytes(createEventJson));
 
         int participantsCount = 5 + random.nextInt(6);
+        participantMessageCount+= participantsCount;
         for (int i = 0; i < participantsCount; i++){
             sendAddParticipant(eventId);
         }
